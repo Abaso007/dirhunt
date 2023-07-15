@@ -13,7 +13,7 @@ class DirHuntError(Exception):
     def __str__(self):
         msg = self.__class__.__name__
         if self.body:
-            msg += ': {}'.format(self.body)
+            msg += f': {self.body}'
         if self.extra_body:
             msg += ('. {}' if self.body else ': {}').format(self.extra_body)
         return msg

@@ -20,13 +20,12 @@ class Wayback(Source):
     def callback(self, domain):
         session = Sessions().get_session()
         try:
-            with session.get(WAYBACK_URL, params=dict(WAYBACK_PARAMS, url='*.{}'.format(domain)),
-                             stream=True, timeout=TIMEOUT) as response:
+            with session.get(WAYBACK_URL, params=dict(WAYBACK_PARAMS, url=f'*.{domain}'), stream=True, timeout=TIMEOUT) as response:
                 response.raise_for_status()
                 for line in filter(bool, response.iter_lines()):
                     if isinstance(line, bytes):
                         line = line.decode(response.encoding or DEFAULT_ENCODING)
                     self.add_result(line)
         except RequestException as e:
-            self.add_error('Error on Wayback source: {}'.format(e))
+            self.add_error(f'Error on Wayback source: {e}')
             return

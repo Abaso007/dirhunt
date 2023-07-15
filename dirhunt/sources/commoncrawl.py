@@ -18,8 +18,8 @@ class CommonCrawl(Source):
             with session.get(url, timeout=TIMEOUT) as response:
                 response.raise_for_status()
                 crawl_indexes = response.json()
-        except (RequestException, ValueError, JSONDecodeError) as e:
-            self.add_error('Error on CommonCrawl source: {}'.format(e))
+        except (RequestException, ValueError) as e:
+            self.add_error(f'Error on CommonCrawl source: {e}')
             return
         if not crawl_indexes:
             return
@@ -33,8 +33,7 @@ class CommonCrawl(Source):
             return
         session = Sessions().get_session()
         try:
-            with session.get(latest_crawl_index, params={'url': '*.{}'.format(domain), 'output': 'json'},
-                             timeout=TIMEOUT, stream=True) as response:
+            with session.get(latest_crawl_index, params={'url': f'*.{domain}', 'output': 'json'}, timeout=TIMEOUT, stream=True) as response:
                 response.raise_for_status()
                 for line in filter(bool, response.iter_lines()):
                     if isinstance(line, bytes):

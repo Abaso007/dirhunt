@@ -90,7 +90,7 @@ class UrlInfo(object):
         size = self.data['resp'].headers.get('Content-Length')
         size = len(self.data.get('text', '')) if size is None else size
         status_code = int(self.data['resp'].status_code)
-        out = colored('({})'.format(status_code), status_code_colors(status_code)) + " "
+        out = f"{colored(f'({status_code})', status_code_colors(status_code))} "
         out += colored('({:>6})'.format(sizeof_fmt(size)), Fore.LIGHTYELLOW_EX) + " "
         return out
 
@@ -102,7 +102,7 @@ class UrlInfo(object):
 
     def get_text(self):
         text = self.data['title'] or self.data['body'] or self.data['text'] or ''
-        text = re.sub('[{}]'.format(string.whitespace), ' ', text)
+        text = re.sub(f'[{string.whitespace}]', ' ', text)
         return re.sub(' +', ' ', text).strip(' ')
 
     @property
@@ -124,18 +124,23 @@ class UrlInfo(object):
         out = self.url_info
         out += colored(('{:<%d}' % url_column).format(self.url.url), Fore.LIGHTBLUE_EX) + "  "
         if self.url.extra:
-            out += colored(' {} '.format(format_extra(self.url.extra, extra_len)), Fore.LIGHTBLUE_EX)
+            out += colored(
+                f' {format_extra(self.url.extra, extra_len)} ', Fore.LIGHTBLUE_EX
+            )
         out += text
         return out
 
     def multi_line(self, line_size, extra_len):
-        out = colored('┏', Fore.LIGHTBLUE_EX) + ' {} {}\n'.format(
-            self.url_info, colored(self.url.url, Fore.LIGHTBLUE_EX)
+        out = (
+            colored('┏', Fore.LIGHTBLUE_EX)
+            + f' {self.url_info} {colored(self.url.url, Fore.LIGHTBLUE_EX)}\n'
         )
         out += colored('┗', Fore.LIGHTBLUE_EX)
         if self.url.extra:
-            out += colored(' {}'.format(format_extra(self.url.extra, extra_len)), Fore.LIGHTBLUE_EX)
-        out += ' {}'.format(self.text[:line_size-2])
+            out += colored(
+                f' {format_extra(self.url.extra, extra_len)}', Fore.LIGHTBLUE_EX
+            )
+        out += f' {self.text[:line_size - 2]}'
         return out
 
     def json(self):
@@ -214,8 +219,7 @@ class UrlsInfo(Pool):
 
     def getted_interesting_files(self):
         for processor in self.processors:
-            for file in processor.interesting_files():
-                yield file
+            yield from processor.interesting_files()
 
     def start(self):
         self.echo('Starting...')
@@ -231,9 +235,9 @@ class UrlsInfo(Pool):
             self.submit(url_len, extra_len, file)
         out = ''
         if self.empty_files:
-            out += 'Empty files: {} '.format(self.empty_files)
+            out += f'Empty files: {self.empty_files} '
         if self.error_files:
-            out += 'Error files: {}'.format(self.error_files)
+            out += f'Error files: {self.error_files}'
         if out:
             self.echo(out)
 

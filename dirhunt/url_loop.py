@@ -15,6 +15,4 @@ def is_url_loop(url, ignore_end=True):
         groups = [tuple(directories[j:j+i]) for j in range(0, MATCHS_LOOP_NUM * i, i)]
         if len(set(groups)) == 1 and len(groups) >= MATCHS_LOOP_NUM:
             return True
-    if ignore_end:
-        return is_url_loop(url.parent(), False)
-    return False
+    return is_url_loop(url.parent(), False) if ignore_end else False

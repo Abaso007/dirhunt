@@ -34,7 +34,4 @@ class Sources(object):
             source.add_domain(domain)
 
     def finished(self):
-        for source in self.sources:
-            if source.is_running():
-                return False
-        return True
+        return not any(source.is_running() for source in self.sources)

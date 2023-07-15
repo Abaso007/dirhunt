@@ -75,7 +75,7 @@ class TestVirusTotal(unittest.TestCase):
     def test_urls(self, m):
         domain = 'domain.com'
         url = VT_URL.format(domain=domain)
-        detect_urls = ['http://{}/{}'.format(domain, i) for i in range(10)]
+        detect_urls = [f'http://{domain}/{i}' for i in range(10)]
         m.get(url, text='<html><body><div id="detected-urls">{}</div></body></html>'.format(
             '\n'.join([ABUSE_DIV.format(url=detect_url) for detect_url in detect_urls])
         ))
@@ -102,7 +102,7 @@ class TestGoogle(unittest.TestCase):
 
         with patch('dirhunt.sources.google.search', side_effect=lambda x, stop: iter(urls)) as m2:
             Google(lambda x: x, None).callback(domain)
-            m2.assert_called_once_with('site:{}'.format(domain), stop=STOP_AFTER)
+            m2.assert_called_once_with(f'site:{domain}', stop=STOP_AFTER)
         m1.assert_has_calls([call(url) for url in urls])
 
     @patch.object(Google, 'add_error')
@@ -157,9 +157,14 @@ class TestCrtSh(unittest.TestCase):
     @patch.object(CrtSh, 'add_result')
     def test_callback(self, m, add_result_mock):
         domain = 'domain.com'
-        m.get('{}?q={}&output=json'.format(CRTSH_URL, domain), json=[
-            {'common_name': 'sub.domain.com'}, {'common_name': 'sub.domain.com'}, {'common_name': 'sub2.domain.com'}
-        ])
+        m.get(
+            f'{CRTSH_URL}?q={domain}&output=json',
+            json=[
+                {'common_name': 'sub.domain.com'},
+                {'common_name': 'sub.domain.com'},
+                {'common_name': 'sub2.domain.com'},
+            ],
+        )
         crtsh = CrtSh(lambda x: x, None)
         crtsh.callback(domain)
         add_result_mock.assert_has_calls([
@@ -175,10 +180,10 @@ class TestCertificateSSL(unittest.TestCase):
         subdomain = 'sub.foo.com'
         with patch.object(CertificateSSL, 'add_result') as mock_add_result:
             m.create_default_context.return_value.wrap_socket.return_value\
-                .__enter__.return_value.getpeercert.return_value = {'subjectAltName': (('DNS', subdomain),)}
+                    .__enter__.return_value.getpeercert.return_value = {'subjectAltName': (('DNS', subdomain),)}
             certificate_ssl = CertificateSSL(lambda x: x, None)
             certificate_ssl.callback(domain)
-            mock_add_result.assert_called_once_with('https://{}/'.format(subdomain))
+            mock_add_result.assert_called_once_with(f'https://{subdomain}/')
 
     @patch('dirhunt.sources.ssl.ssl.create_default_context', **{
         'return_value.wrap_socket.side_effect': ssl.SSLError
@@ -199,8 +204,12 @@ class TestWayback(unittest.TestCase):
     def test_callback(self, m, add_result_mock):
         domain = 'domain.com'
         subdomains = ['sub.domain.com', 'sub2.domain.com']
-        m.get('{}?{}'.format(WAYBACK_URL, urlencode(dict(WAYBACK_PARAMS, url="*.{}".format(domain)))),
-              text='\n'.join(subdomains))
+        m.get(
+            '{}?{}'.format(
+                WAYBACK_URL, urlencode(dict(WAYBACK_PARAMS, url=f"*.{domain}"))
+            ),
+            text='\n'.join(subdomains),
+        )
         wayback = Wayback(lambda x: x, None)
         wayback.callback(domain)
         add_result_mock.assert_has_calls([call(subdomain) for subdomain in subdomains], any_order=True)

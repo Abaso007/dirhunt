@@ -64,7 +64,7 @@ class TestProcessNotFound(CrawlerTestBase, unittest.TestCase):
         crawler_url = self.get_crawler_url()
         crawler_url.exists = True
         process = ProcessNotFound(None, crawler_url)
-        self.assertIn('{}.fake'.format(process.key_name), process.flags)
+        self.assertIn(f'{process.key_name}.fake', process.flags)
 
     def test_str(self):
         crawler_url = self.get_crawler_url()

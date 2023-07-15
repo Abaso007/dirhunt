@@ -27,8 +27,11 @@ class TestForceUrl(unittest.TestCase):
     def test_default(self):
         with requests_mock.mock() as m:
             for prot in SCHEMES + ['alt']:
-                m.get('{}://domain.com'.format(prot), headers={'Location': 'alt://domain.com'},
-                      status_code=301)
+                m.get(
+                    f'{prot}://domain.com',
+                    headers={'Location': 'alt://domain.com'},
+                    status_code=301,
+                )
             self.assertEqual(force_url('domain.com'), 'http://domain.com')
 
 

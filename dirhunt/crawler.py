@@ -37,7 +37,7 @@ class Crawler(ThreadPoolExecutor):
                  cookies=None, headers=None):
         if not max_workers and not delay:
             max_workers = (multiprocessing.cpu_count() or 1) * 5
-        elif not max_workers and delay:
+        elif not max_workers:
             max_workers = len(proxies or [None])
         super(Crawler, self).__init__(max_workers)
         self.domains = set()
@@ -154,11 +154,9 @@ class Crawler(ThreadPoolExecutor):
         if not self.progress_enabled:
             # Cancel print progress on
             return
-        self.echo('{} {} {}'.format(
-            next(self.spinner),
-            'Finished after' if finished else 'Started',
-            (humanize.naturaldelta if finished else humanize.naturaltime)(datetime.datetime.now() - self.start_dt),
-        ))
+        self.echo(
+            f"{next(self.spinner)} {'Finished after' if finished else 'Started'} {(humanize.naturaldelta if finished else humanize.naturaltime)(datetime.datetime.now() - self.start_dt)}"
+        )
 
     def print_results(self, exclude=None, include=None):
         exclude = exclude or set()
@@ -171,17 +169,17 @@ class Crawler(ThreadPoolExecutor):
                 pass
             self.erase()
             if result and result.maybe_directory() and not (result.crawler_url.flags & exclude) \
-                    and (not include or (include & result.crawler_url.flags)):
+                        and (not include or (include & result.crawler_url.flags)):
                 self.echo(result)
             self.print_progress()
             if (self.sources.finished() and not self.processing) or \
-                    self.current_processed_count >= self.limit and self.limit:
+                        self.current_processed_count >= self.limit and self.limit:
                 # Ended
                 if self.current_processed_count >= self.limit and self.limit:
                     # Force shutdown
                     self.closing = True
                     self.erase()
-                    self.echo('Results limit reached ({}). Finishing...'.format(self.limit))
+                    self.echo(f'Results limit reached ({self.limit}). Finishing...')
                     self.shutdown()
                 self.erase()
                 self.print_progress(True)
@@ -248,8 +246,7 @@ class Crawler(ThreadPoolExecutor):
         file_version = resume_data.get('version')
         if file_version != __version__:
             raise IncompatibleVersionError(
-                'Analysis file incompatible with the current version of dirhunt. '
-                'Dirhunt version: {}. File version: {}'.format(__version__, file_version)
+                f'Analysis file incompatible with the current version of dirhunt. Dirhunt version: {__version__}. File version: {file_version}'
             )
         for data in resume_data['processed']:
             crawler_url_data = data['crawler_url']

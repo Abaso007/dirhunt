@@ -51,11 +51,9 @@ class ApacheDirectoryList(DirectoryListBase):
             if i+1 < len(contents) and isinstance(contents[i+1], NavigableString):
                 extra = {}
                 text = str(contents[i+1])
-                dt = DATETIME_PATTERN.findall(text)
-                if dt:
+                if dt := DATETIME_PATTERN.findall(text):
                     extra['created_at'] = dt[0]
-                size = FILESIZE_PATTERN.findall(text)
-                if size:
+                if size := FILESIZE_PATTERN.findall(text):
                     extra['filesize'] = size[0].rstrip(' ')
                 link.add_extra(extra)
             links.append(link)

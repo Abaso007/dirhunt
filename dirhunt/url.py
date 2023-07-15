@@ -20,11 +20,11 @@ def full_url_address(address, url):
         return
     protocol_match = address.split(':', 1)[0] if ':' in address else ''
     protocol_match = re.match('^([A-z0-9\\-]+)$', protocol_match)
-    if protocol_match and protocol_match.group(1) not in ACCEPTED_PROTOCOLS:
+    if protocol_match and protocol_match[1] not in ACCEPTED_PROTOCOLS:
         return
     # TODO: mejorar esto. Aceptar otros protocolos  a rechazar
     if address.startswith('//'):
-        address = address.replace('//', '{}://'.format(url.protocol), 1)
+        address = address.replace('//', f'{url.protocol}://', 1)
     if '://' not in address or address.startswith('/'):
         url = url.copy()
         url.path = address
@@ -138,13 +138,11 @@ class Url(object):
     def directory_path(self):
         if self.path.endswith('/'):
             return self.path
-        if not self.path:
-            return '/'
-        return os.path.dirname(self.path)[0]
+        return '/' if not self.path else os.path.dirname(self.path)[0]
 
     @property
     def url(self):
-        return self.urlparsed[0] + '://' + self.urlparsed[1] + self.full_path
+        return f'{self.urlparsed[0]}://{self.urlparsed[1]}{self.full_path}'
 
     @property
     def query(self):
@@ -204,4 +202,4 @@ class Url(object):
         return self.url == other
 
     def __str__(self):
-        return '<Url {}>'.format(self.url)
+        return f'<Url {self.url}>'

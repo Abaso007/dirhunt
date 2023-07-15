@@ -19,7 +19,7 @@ class VirusTotal(Source):
             with session.get(url) as response:
                 html = response.text
         except RequestException as e:
-            self.add_error('Error on Crt.sh source: {}'.format(e))
+            self.add_error(f'Error on Crt.sh source: {e}')
             return
         if ABUSE in html:
             self.add_error(ABUSE_MESSAGE_ERROR.format(url=url))

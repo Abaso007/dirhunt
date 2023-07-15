@@ -22,7 +22,7 @@ class DirhuntRobotFileParser(RobotFileParser):
         except RequestException:
             pass
         else:
-            if status_code in (401, 403):
+            if status_code in {401, 403}:
                 self.disallow_all = True
             elif status_code >= 400 and status_code < 500:
                 self.allow_all = True
