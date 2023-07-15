@@ -52,7 +52,7 @@ class TestUrlInfo(unittest.TestCase):
 
     def test_get_data_body(self):
         body = '<body><h1>Hello world</h1></body>'
-        html = '<html>{}</html>'.format(body)
+        html = f'<html>{body}</html>'
         self.assertEqual(self._test_get_data(html).get('body'), body)
 
     def test_get_data_invalid_html(self):

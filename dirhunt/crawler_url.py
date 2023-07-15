@@ -124,7 +124,7 @@ class CrawlerUrl(object):
         return self
 
     def weight(self):
-        value = sum([FLAGS_WEIGHT.get(flag, 0) for flag in self.flags])
+        value = sum(FLAGS_WEIGHT.get(flag, 0) for flag in self.flags)
         if self.url and self.url.is_valid():
             value -= len(list(self.url.breadcrumb())) * 1.5
         return value

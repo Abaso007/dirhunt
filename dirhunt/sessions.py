@@ -52,12 +52,13 @@ def lock(fn):
 
 
 def normalize_proxy(proxy, sessions):
-    if proxy is not None and proxy.lower() == 'none':
-        return None
-    elif proxy is not None and proxy.lower() == 'tor':
-        return 'socks5://127.0.0.1:9150'
-    elif proxy is not None and proxy.lower() in COUNTRIES:
-        return next(sessions.proxies_lists[proxy], None)
+    if proxy is not None:
+        if proxy.lower() == 'none':
+            return None
+        elif proxy.lower() == 'tor':
+            return 'socks5://127.0.0.1:9150'
+        elif proxy.lower() in COUNTRIES:
+            return next(sessions.proxies_lists[proxy], None)
     return proxy
 
 
@@ -87,7 +88,7 @@ class Session(object):
             'User-Agent': user_agent or get_random_user_agent(),
         }
         self.session.cookies.update(cookies or {})
-        self.session.headers.update(headers or {})
+        self.session.headers |= (headers or {})
         adapter = HTTPAdapter(pool_connections=POOL_CONNECTIONS, pool_maxsize=POOL_CONNECTIONS)
         self.session.mount('http://', adapter)
         self.session.mount('https://', adapter)

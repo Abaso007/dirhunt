@@ -111,9 +111,11 @@ class ProcessBase(object):
         return self.crawler_url.maybe_directory()
 
     def url_line(self):
-        body = colored('[{}]'.format(self.status_code), status_code_colors(self.status_code))
-        body += ' {} '.format(self.crawler_url.url.url)
-        body += colored(' ({})'.format(self.name or self.__class__.__name__), Fore.LIGHTYELLOW_EX)
+        body = colored(f'[{self.status_code}]', status_code_colors(self.status_code))
+        body += f' {self.crawler_url.url.url} '
+        body += colored(
+            f' ({self.name or self.__class__.__name__})', Fore.LIGHTYELLOW_EX
+        )
         return body
 
     def add_url(self, url, depth=3, **kwargs):
@@ -126,12 +128,12 @@ class ProcessBase(object):
         body = self.url_line()
         if self.index_file:
             body += colored('\n    Index file found: ', Fore.BLUE)
-            body += '{}'.format(self.index_file.name)
+            body += f'{self.index_file.name}'
         return body
 
     def json(self):
         return {
-            'processor_class': '{}'.format(self.__class__.__name__),
+            'processor_class': f'{self.__class__.__name__}',
             'status_code': self.status_code,
             'crawler_url': self.crawler_url.json(),
             'line': str(self),
@@ -152,8 +154,8 @@ class Error(ProcessBase):
 
     def __str__(self):
         body = colored('[ERROR]', Back.LIGHTRED_EX, Fore.LIGHTWHITE_EX)
-        body += ' {} '.format(self.crawler_url.url.url)
-        body += colored('({})'.format(self.error), Fore.LIGHTYELLOW_EX)
+        body += f' {self.crawler_url.url.url} '
+        body += colored(f'({self.error})', Fore.LIGHTYELLOW_EX)
         return body
 
     @classmethod
@@ -168,8 +170,8 @@ class Message(Error):
         self.level = level
 
     def __str__(self):
-        body = colored('[{}]'.format(self.level), Back.LIGHTRED_EX, Fore.LIGHTWHITE_EX)
-        body += colored(' {}'.format(self.error), Fore.LIGHTYELLOW_EX)
+        body = colored(f'[{self.level}]', Back.LIGHTRED_EX, Fore.LIGHTWHITE_EX)
+        body += colored(f' {self.error}', Fore.LIGHTYELLOW_EX)
         return body
 
     def maybe_directory(self):
@@ -204,7 +206,7 @@ class ProcessRedirect(ProcessBase):
     def __str__(self):
         body = super(ProcessRedirect, self).__str__()
         body += colored('\n    Redirect to: ', Fore.BLUE)
-        body += '{}'.format(self.redirector.address)
+        body += f'{self.redirector.address}'
         return body
 
 
@@ -224,14 +226,14 @@ class ProcessNotFound(ProcessBase):
         if self.crawler_url.exists:
             body += colored(' (FAKE 404)', Fore.YELLOW)
         if self.index_file:
-            body += '\n    Index file found: {}'.format(self.index_file.name)
+            body += f'\n    Index file found: {self.index_file.name}'
         return body
 
     @property
     def flags(self):
         flags = super(ProcessNotFound, self).flags
         if self.crawler_url.exists:
-            flags.update({'{}.fake'.format(self.key_name)})
+            flags.update({f'{self.key_name}.fake'})
         return flags
 
 
@@ -348,8 +350,7 @@ class ProcessIndexOfRequest(ProcessHtmlRequest):
 
     def interesting_files(self):
         for iterator in [self.interesting_ext_files(), self.interesting_name_files()]:
-            for file in iterator:
-                yield file
+            yield from iterator
 
     def __str__(self):
         body = super(ProcessIndexOfRequest, self).__str__()
@@ -357,10 +358,10 @@ class ProcessIndexOfRequest(ProcessHtmlRequest):
         name_files = list(self.interesting_name_files())
         if ext_files:
             body += colored('\n    Interesting extension files:', Fore.BLUE)
-            body += ' {}'.format(', '.join(map(lambda x: self.repr_file(x), ext_files)))
+            body += f" {', '.join(map(lambda x: self.repr_file(x), ext_files))}"
         if name_files:
             body += colored('\n    Interesting file names:', Fore.MAGENTA)
-            body += ' {}'.format(', '.join(map(lambda x: self.repr_file(x), name_files)))
+            body += f" {', '.join(map(lambda x: self.repr_file(x), name_files))}"
         if not ext_files and not name_files:
             body += colored(' (Nothing interesting)', Fore.LIGHTYELLOW_EX)
         return body
@@ -370,7 +371,7 @@ class ProcessIndexOfRequest(ProcessHtmlRequest):
         text = file.name
         created_at, filesize = file.extra.get('created_at'), file.extra.get('filesize')
         if created_at or filesize:
-            text += ' ({})'.format(u' ⚫ '.join(filter(bool, [created_at, filesize])))
+            text += f" ({' ⚫ '.join(filter(bool, [created_at, filesize]))})"
         return text
 
     @classmethod
@@ -381,10 +382,7 @@ class ProcessIndexOfRequest(ProcessHtmlRequest):
         if not title:
             return False
         title = title.text.lower()
-        for index_title in cls.index_titles:
-            if title.startswith(index_title):
-                return True
-        return False
+        return any(title.startswith(index_title) for index_title in cls.index_titles)
 
     @property
     def flags(self):
@@ -392,7 +390,7 @@ class ProcessIndexOfRequest(ProcessHtmlRequest):
         try:
             next(self.interesting_files())
         except StopIteration:
-            flags.update({'{}.nothing'.format(self.key_name)})
+            flags.update({f'{self.key_name}.nothing'})
         return flags
 
 
@@ -408,9 +406,8 @@ class ProcessBlankPageRequest(ProcessHtmlRequest):
         def tag_visible(element):
             if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
                 return False
-            if isinstance(element, Comment):
-                return False
-            return True
+            return not isinstance(element, Comment)
+
         texts = soup.findAll(text=True)
         visible_texts = filter(tag_visible, texts)
         for text in visible_texts:

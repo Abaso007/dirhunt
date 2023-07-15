@@ -78,27 +78,28 @@ def print_version(ctx, param, value):
     import dirhunt
     from dirhunt import __version__
     latest = latest_release('dirhunt')
-    release = ('This is the latest release' if latest == __version__
-               else 'There is a new version available: {}. Upgrade it using: '
-                    'sudo pip install -U dirhunt'.format(latest))
-    click.echo('You are running Dirhunt v{} using Python {}.\n{}\n'
-               'Installation path: {}\n'
-               'Current path: {}\n'.format(
-        __version__, sys.version.split()[0], release, os.path.dirname(dirhunt.__file__), os.getcwd()
-    ))
+    release = (
+        'This is the latest release'
+        if latest == __version__
+        else f'There is a new version available: {latest}. Upgrade it using: sudo pip install -U dirhunt'
+    )
+    click.echo(
+        f'You are running Dirhunt v{__version__} using Python {sys.version.split()[0]}.\n{release}\nInstallation path: {os.path.dirname(dirhunt.__file__)}\nCurrent path: {os.getcwd()}\n'
+    )
     ctx.exit()
 
 
 def welcome():
     from dirhunt import __version__
-    click.secho('Welcome to Dirhunt v{} using Python {}'.format(__version__, sys.version.split()[0]),
-                fg='cyan')
+    click.secho(
+        f'Welcome to Dirhunt v{__version__} using Python {sys.version.split()[0]}',
+        fg='cyan',
+    )
 
 
 def flags_range(flags):
     for code in tuple(flags):
-        match = re.match('^(\d{3})-(\d{3})$', code)
-        if match:
+        if match := re.match('^(\d{3})-(\d{3})$', code):
             flags.remove(code)
             flags += list(map(str, status_code_range(*map(int, match.groups()))))
     return flags
@@ -174,8 +175,8 @@ def hunt(urls, threads, exclude_flags, include_flags, interesting_extensions, in
             (set(exclude_flags), set(include_flags))
         if choice == 'a':
             crawler.close(True)
-            click.echo('Created resume file "{}". Run again using the same parameters to resume.'.format(
-                crawler.get_resume_file())
+            click.echo(
+                f'Created resume file "{crawler.get_resume_file()}". Run again using the same parameters to resume.'
             )
             return
         elif choice == 'c':

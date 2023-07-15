@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Find web directories without bruteforce
 """
+
 from setuptools import setup, find_packages, __version__ as setuptool_version
 from distutils.version import LooseVersion
 from distutils.util import convert_path
@@ -70,7 +71,9 @@ readme_path = os.path.join(__dir__, 'README')
 if not os.path.exists(readme_path):
     readme_path = os.path.join(__dir__, 'README.rst')
 version_path = os.path.join(__dir__, 'VERSION')
-requirements_path = os.path.join(__dir__, 'py{}-requirements.txt'.format(sys.version_info.major))
+requirements_path = os.path.join(
+    __dir__, f'py{sys.version_info.major}-requirements.txt'
+)
 scripts_path = os.path.join(__dir__, 'scripts')
 
 
@@ -144,10 +147,7 @@ def find_package_data(where='.', package='',
                 if bad_name:
                     continue
                 if os.path.isfile(os.path.join(fn, '__init__.py')):
-                    if not package:
-                        new_package = name
-                    else:
-                        new_package = package + '.' + name
+                    new_package = name if not package else f'{package}.{name}'
                     stack.append((fn, '', new_package, False))
                 else:
                     stack.append(
@@ -190,8 +190,12 @@ def read_requirements_files(files):
     reqs = []
     for file in files:
         if LooseVersion(setuptool_version) >= LooseVersion('20.2'):
-            reqs.extend([('{};{}'.format(req, file['marker']) if file.get('marker') else req)
-                         for req in read_requirements_file(file['name'])])
+            reqs.extend(
+                [
+                    f"{req};{file['marker']}" if file.get('marker') else req
+                    for req in read_requirements_file(file['name'])
+                ]
+            )
         elif file.get('include', True):
             # Retrocompatibility mode for setuptools < 20.2
             reqs.extend(list(read_requirements_file(file['name'])))
@@ -216,11 +220,11 @@ package_data = {'': ROOT_INCLUDE}
 modules = list(filter(lambda x: '.' not in x, packages))
 
 for module in modules:
-    package_data.update(find_package_data(
+    package_data |= find_package_data(
         module,
         package=module,
         only_in_packages=False,
-    ))
+    )
 
 # Descripción larga si existe un archivo README
 try:
@@ -256,9 +260,9 @@ platforms_classifiers = {'linux': ('POSIX', 'Linux'), 'win': ('Microsoft', 'Wind
                          'solaris': ('POSIX', 'SunOS/Solaris'), 'aix': ('POSIX', 'Linux'), 'unix': ('Unix',),
                          'bsd': ('POSIX', 'BSD')}
 for key, parts in platforms_classifiers.items():
-    if not key in PLATFORMS:
+    if key not in PLATFORMS:
         continue
-    CLASSIFIERS.append('Operating System :: {}'.format(' :: '.join(parts)))
+    CLASSIFIERS.append(f"Operating System :: {' :: '.join(parts)}")
 
 
 # Añadir la versión de Python a los Classifiers
@@ -273,7 +277,7 @@ for version in PYTHON_VERSIONS:
     if '-' in version:
         version = version.split('-')
         if len(version) != 2:
-            raise ValueError('Invalid Python version range: {}'.format('-'.join(version)))
+            raise ValueError(f"Invalid Python version range: {'-'.join(version)}")
         version = list(map(float, version))
         version[1] += 0.1  # Para que frange incluya la última versión
         python_versions.extend(frange(version[0], version[1], 0.1))
@@ -290,12 +294,19 @@ for version in range(2, 4):
         # Sólo se encuentran versiones para la versión <version>
         python_versions.append('%i :: Only' % version)
         break
-CLASSIFIERS.extend(['Programming Language :: Python :: %s' % version for version in python_versions])
+CLASSIFIERS.extend(
+    [
+        f'Programming Language :: Python :: {version}'
+        for version in python_versions
+    ]
+)
 
-CLASSIFIERS.extend([
-    'Natural Language :: {}'.format(NATURAL_LANGUAGE),
-    'Development Status :: {} - {}'.format(STATUS_LEVEL, status_name),
-])
+CLASSIFIERS.extend(
+    [
+        f'Natural Language :: {NATURAL_LANGUAGE}',
+        f'Development Status :: {STATUS_LEVEL} - {status_name}',
+    ]
+)
 
 setup(
     name=PACKAGE_NAME,

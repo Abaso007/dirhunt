@@ -32,14 +32,23 @@ def confirm_close():
 
 
 def confirm_choices_close(choices, default_choice):
-    choices_descriptions = ['  [{}]{}'.format(choice[0].upper() if default_choice == choice[0] else choice[0],
-                                              choice[1:])
-                            for choice in choices]
+    choices_descriptions = [
+        f'  [{choice[0].upper() if default_choice == choice[0] else choice[0]}]{choice[1:]}'
+        for choice in choices
+    ]
     choices_letters = [choice[0].upper() if default_choice == choice[0] else choice[0] for choice in choices]
-    choice = click.prompt(colored('\n\nAn interrupt signal has been detected. what do you want to do?\n\n' +
-                                  '\n'.join(choices_descriptions) +
-                                  '\nEnter a choice [{}]'.format('/'.join(choices_letters)),
-                                  Fore.LIGHTRED_EX), default=default_choice, show_default=False)
+    choice = click.prompt(
+        colored(
+            (
+                '\n\nAn interrupt signal has been detected. what do you want to do?\n\n'
+                + '\n'.join(choices_descriptions)
+                + f"\nEnter a choice [{'/'.join(choices_letters)}]"
+            ),
+            Fore.LIGHTRED_EX,
+        ),
+        default=default_choice,
+        show_default=False,
+    )
     if not next(iter(filter(lambda x: x == choice.lower(), map(lambda x: x.lower(), choices_letters))), None):
         return default_choice
     return choice.lower()
@@ -91,14 +100,14 @@ def force_url(url):
     if value_is_file_path(url):
         return [force_url(sub_url) for sub_url in read_file_lines(url)]
     for scheme in SCHEMES:
-        new_url = '{}://{}'.format(scheme, url)
+        new_url = f'{scheme}://{url}'
         try:
             r = requests.get(new_url, timeout=15, verify=False)
         except RequestException:
             continue
-        if r.url.startswith('{}:'.format(scheme)):
+        if r.url.startswith(f'{scheme}:'):
             return new_url
-    return '{}://{}'.format(DEFAULT_SCHEME, url)
+    return f'{DEFAULT_SCHEME}://{url}'
 
 
 def remove_ansi_escape(text):
@@ -118,9 +127,7 @@ def flat_list(values):
 
 def multiplier_arg(argument):
     matchs = ARGUMENT_MULT.match(argument)
-    if matchs is None:
-        return argument
-    return [matchs.group(1)] * int(matchs.group(2))
+    return argument if matchs is None else [matchs.group(1)] * int(matchs.group(2))
 
 
 def multiplier_args(arguments):

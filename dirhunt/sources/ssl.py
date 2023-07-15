@@ -35,4 +35,4 @@ class CertificateSSL(Source):
             alt_name_domain = alt_name[1]
             if alt_name_domain.startswith('*.'):
                 alt_name_domain = alt_name_domain.replace('.*', '', 1)
-            self.add_result('https://{}/'.format(alt_name_domain))
+            self.add_result(f'https://{alt_name_domain}/')
